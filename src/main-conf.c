@@ -218,6 +218,7 @@ print_nmap_help(void)
 "  -oL/-oJ/-oD/-oG/-oB/-oX/-oU <file>: Output scan in List/JSON/nDjson/Grepable/Binary/XML/Unicornscan format,\n"
 "     respectively, to the given filename. Shortcut for\n"
 "     --output-format <format> --output-file <file>\n"
+"  --output-flush: Flushes output per host found (recommended for real-time reading).\n"
 "  -v: Increase verbosity level (use -vv or more for greater effect)\n"
 "  -d: Increase debugging level (use -dd or more for greater effect)\n"
 "  --open: Only show open (or possibly open) ports\n"
@@ -1627,6 +1628,18 @@ static int SET_output_append(struct Masscan *masscan, const char *name, const ch
     return CONF_OK;
 }
 
+static int SET_output_flush(struct Masscan *masscan, const char *name, const char *value)
+{
+    UNUSEDPARM(name);
+    if (masscan->echo) {
+        if (masscan->output.is_output_flush || masscan->echo_all)
+            fprintf(masscan->echo, "output-flush = %s\n", masscan->output.is_output_flush?"true":"false");
+       return 0;
+    }
+    masscan->output.is_output_flush = parseBoolean(value);
+    return CONF_OK;
+}
+
 static int SET_output_filename(struct Masscan *masscan, const char *name, const char *value)
 {
     UNUSEDPARM(name);
@@ -2395,6 +2408,7 @@ struct ConfigParameter config_parameters[] = {
     {"output-noshow",   SET_output_noshow,      0,      {"noshow",0}},
     {"output-show-open",SET_output_show_open,   F_BOOL, {"open", "open-only", 0}},
     {"output-append",   SET_output_append,      0,      {"append-output",0}},
+    {"output-flush",    SET_output_flush,       F_BOOL, {"output-flush",0}},
     {"rotate",          SET_rotate_time,        0,      {"output-rotate", "rotate-output", "rotate-time", 0}},
     {"rotate-dir",      SET_rotate_directory,   0,      {"output-rotate-dir", "rotate-directory", 0}},
     {"rotate-offset",   SET_rotate_offset,      0,      {"output-rotate-offset", 0}},

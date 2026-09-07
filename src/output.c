@@ -81,6 +81,19 @@ name_from_ip_proto(unsigned ip_proto)
     }
 }
 
+/*****************************************************************************
+ * This function converts the version of the ipaddress struct back into a
+ * readable string.
+ *****************************************************************************/
+const char *
+name_from_ip_version(unsigned char version)
+{
+    switch (version) {
+        case 4: return "ipv4";
+        case 6: return "ipv6";
+        default: return "err";
+    }
+}
 
 /*****************************************************************************
  * The actual 'status' variable is narrowly defined depending on the
@@ -402,6 +415,7 @@ output_create(const struct Masscan *masscan, unsigned thread_index)
     out->is_show_closed = masscan->output.is_show_closed;
     out->is_show_host = masscan->output.is_show_host;
     out->is_append = masscan->output.is_append;
+    out->is_output_flush = masscan->output.is_output_flush;
     out->xml.stylesheet = duplicate_string(masscan->output.stylesheet);
     out->rotate.directory = duplicate_string(masscan->output.rotate.directory);
     if (masscan->nic_count <= 1)
@@ -860,6 +874,9 @@ output_report_status(struct Output *out, time_t timestamp, int status,
      * and so on.
      */
     out->funcs->status(out, fp, timestamp, status, ip, ip_proto, port, reason, ttl);
+
+    if (out->is_output_flush)
+        fflush(fp);
 }
 
 
@@ -934,6 +951,8 @@ output_report_banner(struct Output *out, time_t now,
      */
     out->funcs->banner(out, fp, now, ip, ip_proto, port, proto, ttl, px, length);
 
+    if (out->is_output_flush)
+        fflush(fp);
 }
 
 

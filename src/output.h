@@ -83,6 +83,7 @@ struct Output
 
     unsigned is_banner:1;           /* --banners */
     unsigned is_banner_rawudp:1;    /* --rawudp */
+    unsigned is_output_flush:1;     /* --output-flush */
     unsigned is_gmt:1; /* --gmt */
     unsigned is_interactive:1; /* echo to command line */
     unsigned is_show_open:1; /* show open ports (default) */
@@ -130,6 +131,7 @@ struct Output
 };
 
 const char *name_from_ip_proto(unsigned ip_proto);
+const char *name_from_ip_version(unsigned char version);
 const char *status_string(enum PortStatus x);
 const char *reason_string(int x, char *buffer, size_t sizeof_buffer);
 const char *normalize_string(const unsigned char *px, size_t length,

@@ -36,8 +36,8 @@ parse_port_unreachable(const unsigned char *px, unsigned length,
     *r_ip_them = px[16]<<24 | px[17]<<16 | px[18]<<8 | px[19];
     *r_ip_proto = px[9]; /* TCP=6, UDP=17 */
 
-    px += (px[0]&0xF)<<2;
     length -= (px[0]&0xF)<<2;
+    px += (px[0]&0xF)<<2;
 
     if (length < 4)
         return -1;
@@ -53,6 +53,43 @@ parse_port_unreachable(const unsigned char *px, unsigned length,
  * will be due to scans we are doing, like pings (echoes). Some will
  * be inadvertent, such as "destination unreachable" messages.
  ***************************************************************************/
+int
+icmp_selftest(void)
+{
+    unsigned ip_me, ip_them, port_me, port_them, ip_proto;
+    int err;
+
+    /* bug 1: length inflated by 16 (+ instead of - 8 in handle_icmp).
+     * 16 bytes must be rejected; the bug would pass 32. */
+    static const unsigned char short_blob[] = {
+        0x45, 0x00, 0x00, 0x1c, 0x00, 0x00, 0x00, 0x00,
+        0x40, 0x11, 0x00, 0x00,
+        0x0a, 0x00, 0x00, 0x01, /* src IP only, dst IP absent */
+    };
+    err = parse_port_unreachable(short_blob, sizeof(short_blob),
+                                 &ip_me, &ip_them, &port_me, &port_them,
+                                 &ip_proto);
+    if (err != -1) return 1;
+
+    /* bug 2: px advanced before length decremented, using the wrong px[0].
+     * src-port high byte 0x06 (nibble=6): wrong order gives length 24-24=0 < 4. */
+    static const unsigned char blob[] = {
+        0x45, 0x00, 0x00, 0x1c, 0x00, 0x00, 0x00, 0x00,
+        0x40, 0x11, 0x00, 0x00,
+        0x0a, 0x00, 0x00, 0x01, /* src = 10.0.0.1  */
+        0xc0, 0x00, 0x02, 0x01, /* dst = 192.0.2.1 */
+        0x06, 0x40,             /* src port = 1600  */
+        0x00, 0x35,             /* dst port = 53    */
+    };
+    err = parse_port_unreachable(blob, sizeof(blob),
+                                 &ip_me, &ip_them, &port_me, &port_them,
+                                 &ip_proto);
+    if (err != 0)          return 1;
+    if (port_me   != 1600) return 1;
+    if (port_them != 53)   return 1;
+    return 0;
+}
+
 void
 handle_icmp(struct Output *out, time_t timestamp,
             const unsigned char *px, unsigned length,
@@ -130,7 +167,7 @@ handle_icmp(struct Output *out, time_t timestamp,
 
                 err = parse_port_unreachable(
                     px + parsed->transport_offset + 8,
-                    length - parsed->transport_offset + 8,
+                    length - parsed->transport_offset - 8,
                     &ip_me2.ipv4, &ip_them2.ipv4, &port_me2, &port_them2,
                     &ip_proto);
 

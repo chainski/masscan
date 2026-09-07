@@ -281,7 +281,7 @@ struct Masscan
          * <stdout> rather than to a file.
          */
         char filename[256];
-        
+
         /**
          * A feature of the XML output where we can insert an optional 
          * stylesheet into the file for better rendering on web browsers
@@ -343,6 +343,12 @@ struct Masscan
         * Print state updates
         */
         unsigned is_status_updates:1;
+
+        /**
+         * --output-flush
+         * Flush the file with every host/banner found
+         */
+        unsigned is_output_flush:1;
 
         struct {
             /**

@@ -129,7 +129,7 @@ ndjson_out_banner(struct Output *out, FILE *fp, time_t timestamp,
     UNUSEDPARM(out);
 
 /*    fprintf(fp, "<host endtime=\"%u\">"
-            "<address addr=\"%u.%u.%u.%u\" addrtype=\"ipv4\"/>"
+            "<address addr=\"%u.%u.%u.%u\" addrtype=\"%s\"/>"
             "<ports>"
             "<port protocol=\"%s\" portid=\"%u\">"
             "<state state=\"open\" reason=\"%s\" reason_ttl=\"%u\" />"
@@ -143,6 +143,7 @@ ndjson_out_banner(struct Output *out, FILE *fp, time_t timestamp,
             (ip>>16)&0xFF,
             (ip>> 8)&0xFF,
             (ip>> 0)&0xFF,
+            name_from_ip_version(ip.version),
             name_from_ip_proto(ip_proto),
             port,
             reason, ttl,

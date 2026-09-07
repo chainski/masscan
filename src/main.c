@@ -375,7 +375,7 @@ infinite:
                  * SYN-COOKIE LOGIC
                  *  Figure out the source IP/port, and the SYN cookie
                  */
-                if (src.ipv4_mask > 1 || src.port_mask > 1) {
+                if (src.ipv4_mask != 0 || src.port_mask != 0) {
                     uint64_t ck = syn_cookie_ipv4((unsigned)(i+repeats),
                                             (unsigned)((i+repeats)>>32),
                                             (unsigned)xXx, (unsigned)(xXx>>32),
@@ -970,7 +970,7 @@ receive_thread(void *v)
             if (TCP_IS_SYNACK(px, parsed.transport_offset)) {
                 if (cookie != seqno_me - 1) {
                     ipaddress_formatted_t fmt = ipaddress_fmt(ip_them);
-                    LOG(0, "%s - bad cookie: ackno=0x%08x expected=0x%08x\n",
+                    LOG(2, "%s - bad cookie: ackno=0x%08x expected=0x%08x\n",
                         fmt.string, seqno_me-1, cookie);
                     continue;
                 }
@@ -1848,6 +1848,7 @@ int main(int argc, char *argv[])
             x += nmapserviceprobes_selftest();
             x += rstfilter_selftest();
             x += masscan_app_selftest();
+            x += icmp_selftest();
 
 
             if (x != 0) {

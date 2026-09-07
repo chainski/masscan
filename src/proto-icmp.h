@@ -6,8 +6,10 @@ struct PreprocessedInfo;
 struct Output;
 
 void handle_icmp(struct Output *out, time_t timestamp,
-        const unsigned char *px, unsigned length, 
+        const unsigned char *px, unsigned length,
         struct PreprocessedInfo *parsed,
         uint64_t entropy);
+
+int icmp_selftest(void);
 
 #endif

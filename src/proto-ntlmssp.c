@@ -96,7 +96,7 @@ append_unicode_string(struct BannerOutput *banout, unsigned proto, const char *n
     banout_append_char(banout, proto, ' ');
     banout_append(banout, PROTO_SMB, name, AUTO_LEN);
     banout_append_char(banout, proto, '=');
-    for (j=0; j<value_length; j += 2) {
+    for (j=0; j+1<value_length; j += 2) {
         unsigned c = value[j] | value[j+1]<<8;
         banout_append_unicode(banout, PROTO_SMB, c);
     }
@@ -155,7 +155,7 @@ ntlmssp_decode(struct NtlmsspDecode *x,
      * that points into the payload section of the chunk */
     name_length = px[12] | px[13]<<8;
     name_offset = px[16] | px[17]<<8 | px[18]<<16 | px[19]<<24;
-    if (name_length && name_length + name_offset < length) {
+    if (name_length && name_offset <= length && name_length <= length - name_offset) {
         append_unicode_string(banout, PROTO_SMB, "domain", px+name_offset, name_length);
     }
     
